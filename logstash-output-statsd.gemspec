@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
 
   # Gem dependencies
   s.add_runtime_dependency 'logstash', '>= 1.4.0', '< 2.0.0'
+  s.add_runtime_dependency 'logstash-input-generator'
 
   s.add_runtime_dependency 'statsd-ruby', ['1.2.0']
 
