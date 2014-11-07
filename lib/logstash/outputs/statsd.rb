@@ -8,11 +8,11 @@ require "logstash/namespace"
 # The most basic coverage of this plugin is that the 'namespace', 'sender', and
 # 'metric' names are combined into the full metric path like so:
 #
-#     namespace.sender.metric
+#     `namespace.sender.metric`
 #
 # The general idea is that you send statsd count or latency data and every few
 # seconds it will emit the aggregated values to the backend. Example aggregates are
-# average, max, stddev, etc.
+# `average`, `max`, `stddev`, etc.
 #
 # You can learn about statsd here:
 #
@@ -24,11 +24,11 @@ require "logstash/namespace"
 #
 # The default final metric sent to statsd would look like this:
 #
-#     namespace.sender.metric
+#     `namespace.sender.metric`
 #
 # With regards to this plugin, the default namespace is "logstash", the default sender
-# is the ${host} field, and the metric name depends on what is set as the metric name
-# in the increment, decrement, timing, count, set or gauge variable. 
+# is the `${host}` field, and the metric name depends on what is set as the metric name
+# in the `increment`, `decrement`, `timing`, `count, `set` or `gauge` variable. 
 #
 class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   ## Regex stolen from statsd code
