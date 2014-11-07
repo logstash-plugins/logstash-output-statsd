@@ -16,11 +16,11 @@ require "logstash/namespace"
 #
 # You can learn about statsd here:
 #
-# * <http://codeascraft.etsy.com/2011/02/15/measure-anything-measure-everything/>
-# * <https://github.com/etsy/statsd>
+# * http://codeascraft.etsy.com/2011/02/15/measure-anything-measure-everything/[Etsy blog post announcing statsd]
+# * https://github.com/etsy/statsd[statsd on github]
 #
 # A simple example usage of this is to count HTTP hits by response code; to learn
-# more about that, check out the [log metrics tutorial](../tutorials/metrics-from-logs)
+# more about that, check out the ../tutorials/metrics-from-logs[log metrics tutorial]
 #
 # The default final metric sent to statsd would look like this:
 #
