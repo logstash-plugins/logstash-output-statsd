@@ -4,10 +4,15 @@ require "logstash/outputs/statsd"
 require "socket"
 
 describe LogStash::Outputs::Statsd do
-  
   port = 4399
+
   udp_server = UDPSocket.new
   udp_server.bind("127.0.0.1", port)
+  udp_server
+
+  after(:all) do
+    udp_server.close
+  end
 
   describe "send metric to statsd" do
     config <<-CONFIG
