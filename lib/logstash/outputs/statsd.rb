@@ -30,6 +30,16 @@ require "logstash/namespace"
 # is the `${host}` field, and the metric name depends on what is set as the metric name
 # in the `increment`, `decrement`, `timing`, `count, `set` or `gauge` variable. 
 #
+# Example:
+# [source,ruby]
+# output {
+#  statsd {
+#   host => "statsd.example.org"
+#   count => { 
+#    "http.bytes" => "%{bytes}"
+#   }
+#  }
+# }
 class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   ## Regex stolen from statsd code
   RESERVED_CHARACTERS_REGEX = /[\:\|\@]/
