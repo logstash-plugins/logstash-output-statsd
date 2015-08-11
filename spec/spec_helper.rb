@@ -1,15 +1,14 @@
 require "logstash/devutils/rspec/spec_helper"
 require "socket"
 
-
 class StatsdServer
 
   attr_reader :received, :port
 
   def initialize
-      @sync_lock = Mutex.new
-      @terminated = false
-      @received   = []
+    @sync_lock = Mutex.new
+    @terminated = false
+    @received   = []
   end
 
   def register(port)
@@ -61,7 +60,7 @@ RSpec.configure do |c|
 
   c.before(:all) do
     srand(c.seed)
-    @server = StatsdServer.new.run(rand(2000..10000))
+    @server = StatsdServer.new.run(random_port)
   end
 
   c.after(:all) do

@@ -24,11 +24,11 @@ describe LogStash::Outputs::Statsd do
         { "host" => host, "sender" => "spec", "port" => port, "count" => [ "foo.bar", "0.1" ] }
       end
 
-      let(:props) do
+      let(:properties) do
         { "metric" => "foo.bar", "count" => 10 }
       end
 
-      let(:event) { LogStash::Event.new(props) }
+      let(:event) { LogStash::Event.new(properties) }
 
       subject { LogStash::Outputs::Statsd.new(config) }
 
