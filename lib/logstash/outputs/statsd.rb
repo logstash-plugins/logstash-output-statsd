@@ -90,7 +90,6 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   public
   def receive(event)
     return unless output?(event)
-
     @client.namespace = event.sprintf(@namespace) if not @namespace.empty?
     @logger.debug? and @logger.debug("Original sender: #{@sender}")
     sender = event.sprintf(@sender)

@@ -1,91 +1,47 @@
 # encoding: utf-8
-require "logstash/devutils/rspec/spec_helper"
 require "logstash/outputs/statsd"
-require "socket"
+require_relative "../spec_helper"
 
 describe LogStash::Outputs::Statsd do
-  port = 4399
 
-  udp_server = UDPSocket.new
-  udp_server.bind("127.0.0.1", port)
-  udp_server
+  let(:host)   { "localhost" }
+  let(:port)   { @server.port }
 
-  after(:all) do
-    udp_server.close
+  describe "registration and teardown" do
+
+    it "should register without errors" do
+      output = LogStash::Plugin.lookup("output", "statsd").new
+      expect {output.register}.to_not raise_error
+    end
+
   end
 
-  describe "send metric to statsd" do
-    config <<-CONFIG
-      input {
-        generator {
-          message => "valid"
-          count => 1
-        }
-      }
+  describe "#send" do
 
-      output {
-        statsd {
-          host => "localhost"
-          sender => "spec"
-          port => #{port}
-          count => [ "test.valid", "0.1" ]
-        }
-      }
-    CONFIG
+    context "count metrics" do
 
-    agent do
-      metric, *data = udp_server.recvfrom(100)
-      insist { metric } == "logstash.spec.test.valid:0.1|c"
+      let(:config) do
+        { "host" => host, "sender" => "spec", "port" => port, "count" => [ "foo.bar", "0.1" ] }
+      end
+
+      let(:props) do
+        { "metric" => "foo.bar", "count" => 10 }
+      end
+
+      let(:event) { LogStash::Event.new(props) }
+
+      subject { LogStash::Outputs::Statsd.new(config) }
+
+      before(:each) do
+        subject.register
+      end
+
+      it "should receive data send to the server" do
+        subject.receive(event)
+        expect(@server.received).to include("logstash.spec.foo.bar:0.1|c")
+      end
+
     end
   end
 
-  describe "output a very small float" do
-    config <<-CONFIG
-      input {
-        generator {
-          message => "valid"
-          count => 1
-        }
-      }
-
-      output {
-        statsd {
-          host => "localhost"
-          sender => "spec"
-          port => #{port}
-          count => [ "test.valid", 0.000001 ]
-        }
-      }
-    CONFIG
-
-    agent do
-      metric, *data = udp_server.recvfrom(100)
-      insist { metric } == "logstash.spec.test.valid:0.000001|c"
-    end
-  end
-
-  describe "output a very big float" do
-    config <<-CONFIG
-      input {
-        generator {
-          message => "valid"
-          count => 1
-        }
-      }
-
-      output {
-        statsd {
-          host => "localhost"
-          sender => "spec"
-          port => #{port}
-          count => [ "test.valid", 9999999999999.01 ]
-        }
-      }
-    CONFIG
-
-    agent do
-      metric, *data = udp_server.recvfrom(100)
-      insist { metric } == "logstash.spec.test.valid:9999999999999.01|c"
-    end
-  end
 end
