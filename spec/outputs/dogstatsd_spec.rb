@@ -32,7 +32,7 @@ describe LogStash::Outputs::Dogstatsd do
 
       context 'with a plain ol metric name' do
         it 'tracks' do
-          expect_any_instance_of(Statsd).to receive(:send_to_socket)
+          expect_any_instance_of(Datadog::Statsd).to receive(:send_to_socket)
             .with("#{metric_to_track}:1|c")
           subject
         end
@@ -43,7 +43,7 @@ describe LogStash::Outputs::Dogstatsd do
         let(:event) { { 'value' => 'helloworld' } }
 
         it 'sprintf tags' do
-          expect_any_instance_of(Statsd).to receive(:send_to_socket)
+          expect_any_instance_of(Datadog::Statsd).to receive(:send_to_socket)
             .with("#{metric_to_track}:1|c|#foo:helloworld")
           subject
         end
@@ -57,7 +57,7 @@ describe LogStash::Outputs::Dogstatsd do
 
       context 'with tags in the metric name and value' do
         it 'tracks' do
-          expect_any_instance_of(Statsd).to receive(:send_to_socket)
+          expect_any_instance_of(Datadog::Statsd).to receive(:send_to_socket)
             .with("#{metric_to_track}:123|h")
           subject
         end
