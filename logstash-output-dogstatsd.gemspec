@@ -26,5 +26,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'dogstatsd-ruby', '~> 1.5'
 
   s.add_development_dependency 'logstash-devutils'
+  s.add_development_dependency 'overcommit'
 end
 

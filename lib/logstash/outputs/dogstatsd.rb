@@ -2,17 +2,10 @@
 require "logstash/outputs/base"
 require "logstash/namespace"
 
-# statsd is a network daemon for aggregating statistics, such as counters and timers,
-# and shipping over UDP to backend services, such as Graphite or Datadog.
-#
-# The most basic coverage of this plugin is that the 'namespace', 'sender', and
-# 'metric' names are combined into the full metric path like so:
-#
-#     `namespace.sender.metric`
-#
-# The general idea is that you send statsd count or latency data and every few
-# seconds it will emit the aggregated values to the backend. Example aggregates are
-# `average`, `max`, `stddev`, etc.
+# dogstatsd is a fork of the statsd protocol which aggregates statistics, such
+# as counters and timers, and ships them over UDP to the dogstatsd-server
+# running as part of the Datadog Agent. Dogstatsd adds support for metric tags,
+# which are used to slice metrics along various dimensions.
 #
 # You can learn about statsd here:
 #
@@ -22,40 +15,28 @@ require "logstash/namespace"
 # A simple example usage of this is to count HTTP hits by response code; to learn
 # more about that, check out the ../tutorials/metrics-from-logs[log metrics tutorial]
 #
-# The default final metric sent to statsd would look like this:
-#
-#     `namespace.sender.metric`
-#
-# With regards to this plugin, the default namespace is "logstash", the default sender
-# is the `${host}` field, and the metric name depends on what is set as the metric name
-# in the `increment`, `decrement`, `timing`, `count, `set` or `gauge` variable. 
-#
 # Example:
 # [source,ruby]
 # output {
-#  statsd {
-#   host => "statsd.example.org"
-#   count => { 
+#  dogstatsd {
+#   metric_tags => {
+#     "host" => "%{host}"
+#   }
+#   count => {
 #    "http.bytes" => "%{bytes}"
 #   }
 #  }
 # }
-class LogStash::Outputs::Statsd < LogStash::Outputs::Base
+class LogStash::Outputs::Dogstatsd < LogStash::Outputs::Base
   ## Regex stolen from statsd code
   RESERVED_CHARACTERS_REGEX = /[\:\|\@]/
-  config_name "statsd"
+  config_name "dogstatsd"
 
-  # The address of the statsd server.
+  # The address of the dogstatsd server.
   config :host, :validate => :string, :default => "localhost"
 
-  # The port to connect to on your statsd server.
+  # The port to connect to on your dogstatsd server.
   config :port, :validate => :number, :default => 8125
-
-  # The statsd namespace to use for this metric.
-  config :namespace, :validate => :string, :default => "logstash"
-
-  # The name of the sender. Dots will be replaced with underscores.
-  config :sender, :validate => :string, :default => "%{host}"
 
   # An increment metric. Metric names as array.
   config :increment, :validate => :array, :default => []
@@ -63,8 +44,9 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   # A decrement metric. Metric names as array.
   config :decrement, :validate => :array, :default => []
 
-  # A timing metric. `metric_name => duration` as hash
-  config :timing, :validate => :hash, :default => {}
+  # A histogram metric, which a statsd timing but conceptually maps to any
+  # numeric value, not just durations. `metric_name => value` as hash
+  config :histogram, :validate => :hash, :default => {}
 
   # A count metric. `metric_name => count` as hash
   config :count, :validate => :hash, :default => {}
@@ -74,55 +56,55 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
 
   # A gauge metric. `metric_name => gauge` as hash.
   config :gauge, :validate => :hash, :default => {}
-  
+
   # The sample rate for the metric.
   config :sample_rate, :validate => :number, :default => 1
 
-  # Enable debugging.
-  config :debug, :validate => :boolean, :default => false, :deprecated => "This setting was never used by this plugin. It will be removed soon."
+  # The tags to apply to each metric.
+  config :metric_tags, :validate => :hash, :default => {}
 
   public
   def register
-    require "statsd"
+    require 'statsd'
     @client = Statsd.new(@host, @port)
   end # def register
 
   public
   def receive(event)
     return unless output?(event)
-    @client.namespace = event.sprintf(@namespace) if not @namespace.empty?
-    @logger.debug? and @logger.debug("Original sender: #{@sender}")
-    sender = event.sprintf(@sender)
-    @logger.debug? and @logger.debug("Munged sender: #{sender}")
     @logger.debug? and @logger.debug("Event: #{event}")
+
+    tags = process_tags(event, @metric_tags)
+    metric_opts = { :sample_rate => @sample_rate, :tags => tags }
+
     @increment.each do |metric|
-      @client.increment(build_stat(event.sprintf(metric), sender), @sample_rate)
+      @client.increment(event.sprintf(metric), metric_opts)
     end
+
     @decrement.each do |metric|
-      @client.decrement(build_stat(event.sprintf(metric), sender), @sample_rate)
+      @client.decrement(event.sprintf(metric), metric_opts)
     end
+
     @count.each do |metric, val|
-      @client.count(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+      @client.count(event.sprintf(metric), event.sprintf(val), metric_opts)
     end
-    @timing.each do |metric, val|
-      @client.timing(build_stat(event.sprintf(metric), sender),
-                     event.sprintf(val), @sample_rate)
+
+    @histogram.each do |metric, val|
+      @client.histogram(event.sprintf(metric), event.sprintf(val), metric_opts)
     end
+
     @set.each do |metric, val|
-      @client.set(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+      @client.set(event.sprintf(metric), event.sprintf(val), metric_opts)
     end
+
     @gauge.each do |metric, val|
-      @client.gauge(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+      @client.gauge(event.sprintf(metric), event.sprintf(val), metric_opts)
     end
   end # def receive
 
-  def build_stat(metric, sender=@sender)
-    sender = sender.gsub('::','.').gsub(RESERVED_CHARACTERS_REGEX, '_').gsub(".", "_")
-    metric = metric.gsub('::','.').gsub(RESERVED_CHARACTERS_REGEX, '_')
-    @logger.debug? and @logger.debug("Formatted value", :sender => sender, :metric => metric)
-    return "#{sender}.#{metric}"
+  private
+  # Returns an array of tags like ["tag1:value1", "tag2:value2"]
+  def process_tags(event, tags)
+    tags.map { |k, v| event.sprintf(k) + ':' + event.sprintf(v) }
   end
 end # class LogStash::Outputs::Statsd

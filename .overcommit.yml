@@ -1,0 +1,13 @@
+PreCommit:
+  HardTabs:
+    enabled: true
+
+  RuboCop:
+    enabled: true
+    command: ['bundle', 'exec', 'rubocop']
+
+  TrailingWhitespace:
+    enabled: true
+
+# Overcommit will use the repo's Gemfile when loading the Bundler context
+gemfile: Gemfile
