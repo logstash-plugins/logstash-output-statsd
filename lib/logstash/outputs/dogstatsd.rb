@@ -29,9 +29,7 @@ end
 # [source,ruby]
 # output {
 #  dogstatsd {
-#   metric_tags => {
-#     "host" => "%{host}"
-#   }
+#   metric_tags => ["host:%{host}","role:foo"]
 #   count => {
 #    "http.bytes" => "%{bytes}"
 #   }
@@ -71,7 +69,7 @@ class LogStash::Outputs::Dogstatsd < LogStash::Outputs::Base
   config :sample_rate, :validate => :number, :default => 1
 
   # The tags to apply to each metric.
-  config :metric_tags, :validate => :hash, :default => {}
+  config :metric_tags, :validate => :array, :default => []
 
   public
   def register
@@ -83,8 +81,10 @@ class LogStash::Outputs::Dogstatsd < LogStash::Outputs::Base
     return unless output?(event)
     @logger.debug? and @logger.debug("Event: #{event}")
 
-    tags = process_tags(event, @metric_tags)
-    metric_opts = { :sample_rate => @sample_rate, :tags => tags }
+    metric_opts = {
+      :sample_rate => @sample_rate,
+      :tags => @metric_tags.map { |t| event.sprintf(t) }
+    }
 
     @increment.each do |metric|
       @client.increment(event.sprintf(metric), metric_opts)
@@ -110,10 +110,4 @@ class LogStash::Outputs::Dogstatsd < LogStash::Outputs::Base
       @client.gauge(event.sprintf(metric), event.sprintf(val), metric_opts)
     end
   end # def receive
-
-  private
-  # Returns an array of tags like ["tag1:value1", "tag2:value2"]
-  def process_tags(event, tags)
-    tags.map { |k, v| event.sprintf(k) + ':' + event.sprintf(v) }
-  end
 end # class LogStash::Outputs::Statsd

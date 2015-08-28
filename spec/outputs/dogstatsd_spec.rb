@@ -39,7 +39,7 @@ describe LogStash::Outputs::Dogstatsd do
       end
 
       context 'with tags' do
-        let(:metric_config) { super().merge('metric_tags' => { 'foo' => '%{value}' }) }
+        let(:metric_config) { super().merge('metric_tags' => ['foo:%{value}']) }
         let(:event) { { 'value' => 'helloworld' } }
 
         it 'sprintf tags' do
@@ -55,7 +55,7 @@ describe LogStash::Outputs::Dogstatsd do
       let(:metric_config) { { 'histogram' => { '%{metric_name}' => '%{track_value}' } } }
       let(:event) { super().merge('metric_name' => metric_to_track, 'track_value' => 123) }
 
-      context 'with tags in the metric name and value' do
+      context 'with event fields in the metric name and value' do
         it 'tracks' do
           expect_any_instance_of(Datadog::Statsd).to receive(:send_to_socket)
             .with("#{metric_to_track}:123|h")
