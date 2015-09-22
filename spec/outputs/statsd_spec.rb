@@ -7,7 +7,7 @@ describe LogStash::Outputs::Statsd do
   let(:host)   { "localhost" }
   let(:port)   { @server.port }
 
-  describe "registration and teardown" do
+  describe "registration and close" do
 
     it "should register without errors" do
       output = LogStash::Plugin.lookup("output", "statsd").new
