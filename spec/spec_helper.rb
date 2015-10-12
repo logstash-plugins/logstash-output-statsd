@@ -55,15 +55,6 @@ module StatdHelpers
 end
 
 RSpec.configure do |c|
-
   c.include StatdHelpers
-
-  c.before(:all) do
-    srand(c.seed)
-    @server = StatsdServer.new.run(random_port)
-  end
-
-  c.after(:all) do
-    @server.close
-  end
+  srand(c.seed)
 end

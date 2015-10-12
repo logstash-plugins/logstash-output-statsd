@@ -7,6 +7,14 @@ describe LogStash::Outputs::Statsd do
   let(:host)   { "localhost" }
   let(:port)   { @server.port }
 
+  before(:all) do
+    @server = StatsdServer.new.run(random_port)
+  end
+
+  after(:all) do
+    @server.close
+  end
+
   describe "registration and close" do
 
     it "should register without errors" do
