@@ -46,15 +46,6 @@ class StatsdServer
 
 end
 
-module StatdHelpers
-
-  def random_port
-    rand(2000..10000)
-  end
-
-end
-
 RSpec.configure do |c|
-  c.include StatdHelpers
   srand(c.seed)
 end
