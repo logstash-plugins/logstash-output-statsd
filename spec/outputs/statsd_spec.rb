@@ -5,7 +5,8 @@ require_relative "../spec_helper"
 describe LogStash::Outputs::Statsd do
 
   let(:host)   { "localhost" }
-  let(:port)   { @server.port }
+  let(:port)   { rand(2000..10000) }
+  let!(:server) { StatsdServer.new.run(port) }
 
   describe "registration and teardown" do
 
@@ -38,7 +39,12 @@ describe LogStash::Outputs::Statsd do
 
       it "should receive data send to the server" do
         subject.receive(event)
-        expect(@server.received).to include("logstash.spec.foo.bar:0.1|c")
+        # Since we are dealing with threads and networks, 
+        # we might experience delays or timing issues.
+        # lets try a few times before giving up completely.
+        try {
+          expect(server.received).to include("logstash.spec.foo.bar:0.1|c")
+        }
       end
 
     end
