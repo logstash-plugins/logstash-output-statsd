@@ -88,12 +88,9 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   # A gauge metric. `metric_name => gauge` as hash. `%{fieldname}` substitutions are
   # allowed in the metric names.
   config :gauge, :validate => :hash, :default => {}
-  
+
   # The sample rate for the metric.
   config :sample_rate, :validate => :number, :default => 1
-
-  # Enable debugging.
-  config :debug, :validate => :boolean, :default => false, :deprecated => "This setting was never used by this plugin. It will be removed soon."
 
   public
   def register
