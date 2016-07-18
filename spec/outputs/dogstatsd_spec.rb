@@ -13,7 +13,7 @@ describe LogStash::Outputs::Dogstatsd do
   end
   let(:metric_config) { {} }
 
-  describe 'registration and teardown' do
+  describe 'registration and close' do
     it 'registers without errors' do
       output = LogStash::Plugin.lookup('output', 'dogstatsd').new
       expect { output.register }.to_not raise_error
