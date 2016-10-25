@@ -131,8 +131,11 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   end # def receive
 
   def build_stat(metric, sender=@sender)
-    sender = sender.gsub('::','.').gsub(RESERVED_CHARACTERS_REGEX, '_').gsub(".", "_")
-    metric = metric.gsub('::','.').gsub(RESERVED_CHARACTERS_REGEX, '_')
+    sender = sender.to_s.gsub('::','.')
+    sender.gsub!(RESERVED_CHARACTERS_REGEX, '_')
+    sender.gsub!(".", "_")
+    metric = metric.to_s.gsub('::','.')
+    metric.gsub!(RESERVED_CHARACTERS_REGEX, '_')
     @logger.debug? and @logger.debug("Formatted value", :sender => sender, :metric => metric)
     return "#{sender}.#{metric}"
   end
