@@ -91,11 +91,14 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
 
   # The sample rate for the metric.
   config :sample_rate, :validate => :number, :default => 1
+  
+  # Enable sending messages over UDP or TCP
+  config :protocol, :validate => :string, :default => "udp"
 
   public
   def register
     require "statsd"
-    @client = Statsd.new(@host, @port)
+    @client = Statsd.new(@host, @port, @protocol.to_sym)
   end # def register
 
   public
