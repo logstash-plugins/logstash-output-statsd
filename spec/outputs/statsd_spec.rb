@@ -1,6 +1,6 @@
 # encoding: utf-8
-require "logstash/outputs/statsd"
 require_relative "../spec_helper"
+require "logstash/outputs/statsd"
 
 describe LogStash::Outputs::Statsd do
 
