@@ -1,5 +1,8 @@
+## 3.1.2
+ - internal: clean gem dependencies and add platform=java
+
 ## 3.1.1
-  - Relax constraint on logstash-core-plugin-api to >= 1.60 <= 2.99
+ - Relax constraint on logstash-core-plugin-api to >= 1.60 <= 2.99
 
 ## 3.1.0
  - breaking,config: Remove deprecated config `debug`.
