@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'logstash/outputs/dogstatsd'
 require_relative '../spec_helper'
 
 describe LogStash::Outputs::Dogstatsd do
