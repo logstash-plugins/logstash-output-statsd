@@ -154,6 +154,15 @@ allowed.
 The port to connect to on your statsd server.
 
 [id="plugins-{type}s-{plugin}-sample_rate"]
+
+===== `protocol` 
+
+  * Value type is <<string,string>>
+  * Default value is `"udp"`
+
+The protocol to connect to on your statsd server.
+
+[id="plugins-{type}s-{plugin}-sample_rate"]
 ===== `sample_rate` 
 
   * Value type is <<number,number>>

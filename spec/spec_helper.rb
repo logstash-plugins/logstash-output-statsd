@@ -11,18 +11,34 @@ class StatsdServer
     @received   = []
   end
 
-  def register(port)
+  def register(port, protocol)
     @port   = port
-    @socket = UDPSocket.new
-    @socket.bind("127.0.0.1", port)
+    if protocol == "udp"
+      @socket = UDPSocket.new
+      @socket.bind("127.0.0.1", port)
+    else
+      @socket = TCPserver.new("127.0.0.1", port)
+    end
   end
 
-  def run(port)
-    register(port)
-    Thread.new do
-      while(!closed?)
-        metric, _ = @socket.recvfrom(100)
+  def run(port, protocol="udp")
+    register(port, protocol)
+    if protocol == "udp"
+      Thread.new do
+        while(!closed?)
+          metric, _ = @socket.recvfrom(100)
+          append(metric)
+        end
+      end
+    else
+      Thread.new do
+        client = @socket.accept 
+        Timeout.timeout(5) do
+          Thread.pass while client == nil
+        end
+        metric = client.recvfrom(100).first
         append(metric)
+        client.close
       end
     end
     self
