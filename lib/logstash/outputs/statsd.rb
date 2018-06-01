@@ -92,41 +92,56 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   # The sample rate for the metric.
   config :sample_rate, :validate => :number, :default => 1
 
+  # The Max number of messages to include in each packet sent to statsd
+  config :batch_size, :validate => :number, :default => 1
+
   public
   def register
     require "statsd"
     @client = Statsd.new(@host, @port)
+    @client.batch_size = @batch_size
   end # def register
 
   public
   def receive(event)
-    
     @client.namespace = event.sprintf(@namespace) if not @namespace.empty?
     @logger.debug? and @logger.debug("Original sender: #{@sender}")
     sender = event.sprintf(@sender)
     @logger.debug? and @logger.debug("Munged sender: #{sender}")
     @logger.debug? and @logger.debug("Event: #{event}")
-    @increment.each do |metric|
-      @client.increment(build_stat(event.sprintf(metric), sender), @sample_rate)
+    @client.batch do |b|
+      @increment.each do |metric|
+        b.increment(build_stat(event.sprintf(metric), sender), @sample_rate)
+      end
     end
-    @decrement.each do |metric|
-      @client.decrement(build_stat(event.sprintf(metric), sender), @sample_rate)
+    @client.batch do |b|
+      @decrement.each do |metric|
+        b.decrement(build_stat(event.sprintf(metric), sender), @sample_rate)
+      end
     end
-    @count.each do |metric, val|
-      @client.count(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+    @client.batch do |b|
+      @count.each do |metric, val|
+        b.count(build_stat(event.sprintf(metric), sender),
+                      event.sprintf(val), @sample_rate)
+      end
     end
-    @timing.each do |metric, val|
-      @client.timing(build_stat(event.sprintf(metric), sender),
-                     event.sprintf(val), @sample_rate)
+    @client.batch do |b|
+      @timing.each do |metric, val|
+        b.timing(build_stat(event.sprintf(metric), sender),
+                       event.sprintf(val), @sample_rate)
+      end
     end
-    @set.each do |metric, val|
-      @client.set(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+    @client.batch do |b|
+      @set.each do |metric, val|
+        b.set(build_stat(event.sprintf(metric), sender),
+                      event.sprintf(val), @sample_rate)
+      end
     end
-    @gauge.each do |metric, val|
-      @client.gauge(build_stat(event.sprintf(metric), sender),
-                    event.sprintf(val), @sample_rate)
+    @client.batch do |b|
+      @gauge.each do |metric, val|
+        b.gauge(build_stat(event.sprintf(metric), sender),
+                      event.sprintf(val), @sample_rate)
+      end
     end
   end # def receive
 
