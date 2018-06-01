@@ -33,9 +33,7 @@ class StatsdServer
     else
       Thread.new do
         client = @socket.accept 
-        Timeout.timeout(5) do
-          Thread.pass while client == nil
-        end
+        Timeout.timeout(5) { sleep(0.1) while client.nil? }
         metric = client.recvfrom(100).first
         append(metric)
         client.close

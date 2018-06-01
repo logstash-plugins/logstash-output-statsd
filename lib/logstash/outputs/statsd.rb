@@ -58,7 +58,7 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   config :port, :validate => :number, :default => 8125
 
   # The protocol to use for the connection.
-  config :protocol, :validate => :string, :default => "udp"
+  config :protocol, :validate => ['udp', 'tcp'], :default => "udp"
 
   # The statsd namespace to use for this metric. `%{fieldname}` substitutions are
   # allowed.

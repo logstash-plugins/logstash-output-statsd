@@ -153,7 +153,7 @@ allowed.
 
 The port to connect to on your statsd server.
 
-[id="plugins-{type}s-{plugin}-sample_rate"]
+[id="plugins-{type}s-{plugin}-protocol"]
 
 ===== `protocol` 
 
