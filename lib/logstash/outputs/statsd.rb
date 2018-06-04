@@ -57,6 +57,9 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   # The port to connect to on your statsd server.
   config :port, :validate => :number, :default => 8125
 
+  # The protocol to use for the connection.
+  config :protocol, :validate => ['udp', 'tcp'], :default => "udp"
+
   # The statsd namespace to use for this metric. `%{fieldname}` substitutions are
   # allowed.
   config :namespace, :validate => :string, :default => "logstash"
@@ -95,7 +98,7 @@ class LogStash::Outputs::Statsd < LogStash::Outputs::Base
   public
   def register
     require "statsd"
-    @client = Statsd.new(@host, @port)
+    @client = Statsd.new(@host, @port, @protocol.to_sym)
   end # def register
 
   public
