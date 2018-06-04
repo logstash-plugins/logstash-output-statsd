@@ -12,7 +12,7 @@ class StatsdServer
   end
 
   def register(port, protocol)
-    @port   = port
+    @port = port
     if protocol == "udp"
       @socket = UDPSocket.new
       @socket.bind("127.0.0.1", port)
@@ -21,24 +21,18 @@ class StatsdServer
     end
   end
 
-  def run(port, protocol="udp")
+
+  def run(port, protocol = "udp")
     register(port, protocol)
-    if protocol == "udp"
-      Thread.new do
-        while(!closed?)
-          metric, _ = @socket.recvfrom(100)
-          append(metric)
-        end
-      end
-    else
-      Thread.new do
-        client = @socket.accept 
-        Timeout.timeout(5) { sleep(0.1) while client.nil? }
-        metric = client.recvfrom(100).first
-        append(metric)
-        client.close
+
+    Thread.new do
+      if protocol == "udp"
+        udp_receive
+      else
+        tcp_receive
       end
     end
+
     self
   end
 
@@ -57,7 +51,23 @@ class StatsdServer
   def closed?
     @terminated == true
   end
+end
 
+private
+
+def tcp_receive
+  client = @socket.accept
+  Timeout.timeout(5) { sleep(0.1) while client.nil? }
+  metric = client.recvfrom(100).first
+  append(metric)
+  client.close
+end
+
+def udp_receive
+  while(!closed?)
+    metric, _ = @socket.recvfrom(100)
+    append(metric)
+  end
 end
 
 RSpec.configure do |c|
