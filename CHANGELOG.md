@@ -1,3 +1,7 @@
+## 3.2.0
+  - Added TCP support [30](https://github.com/logstash-plugins/logstash-output-statsd/pull/30)
+  - Changed test code for cleanups [31](https://github.com/logstash-plugins/logstash-output-statsd/pull/31)
+  
 ## 3.1.5
   - Docs: Set the default_codec doc attribute.
 
